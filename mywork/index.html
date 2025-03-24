@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Pipeline Builder</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .step { margin-bottom: 20px; padding: 10px; border-left: 5px solid #007bff; background-color: #f9f9f9; display: flex; align-items: center; }
+    .step-logo { width: 30px; height: 30px; margin-right: 10px; }
+    .tool-logo { width: 50px; height: 50px; margin-right: 10px; }
+    .tool-logos { margin-top: 20px; }
+    .diagram { width: 100%; max-width: 800px; margin: 20px auto; }
+    .loader {
+      display: none; /* Hidden by default */
+      text-align: center;
+      margin: 20px 0;
+    }
+    .loader img {
+      width: 100px;
+      height: 100px;
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .cost-estimation { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center">Intelligent Data Pipeline Builder</h1>
+    <form id="userInputForm" class="mb-4">
+      <!-- Data Sources -->
+      <div class="mb-3">
+        <label for="dataSources" class="form-label">Data Sources:</label>
+        <select id="dataSources" class="form-select" multiple>
+          <option value="Offline">Offline Files</option>
+          <option value="OLTP">OLTP Databases</option>
+          <option value="API">APIs</option>
+          <option value="IoT">IoT Devices</option>
+          <option value="CloudStorage">Cloud Storage (e.g., S3, GCS)</option>
+        </select>
+      </div>
+
+      <!-- Data Size -->
+      <div class="mb-3">
+        <label class="form-label">Data Size:</label>
+        <div>
+          <input type="radio" name="dataSize" value="Small" class="form-check-input"> Small (GBs)
+          <input type="radio" name="dataSize" value="Medium" class="form-check-input"> Medium (TBs)
+          <input type="radio" name="dataSize" value="Large" class="form-check-input"> Large (PBs)
+        </div>
+      </div>
+
+      <!-- Data Processing Requirements -->
+      <div class="mb-3">
+        <label class="form-label">Data Processing Requirements:</label>
+        <div>
+          <input type="checkbox" name="processing" value="Batch" class="form-check-input"> Batch Processing
+          <input type="checkbox" name="processing" value="Stream" class="form-check-input"> Stream Processing
+          <input type="checkbox" name="processing" value="RealTime" class="form-check-input"> Real-time Analytics
+          <input type="checkbox" name="processing" value="ML" class="form-check-input"> Machine Learning Integration
+        </div>
+      </div>
+
+      <!-- Data Warehouse Requirements -->
+      <div class="mb-3">
+        <label class="form-label">Data Warehouse Requirements:</label>
+        <div>
+          <input type="checkbox" name="warehouse" value="Scalability" class="form-check-input"> Scalability
+          <input type="checkbox" name="warehouse" value="HighAvailability" class="form-check-input"> High Availability
+          <input type="checkbox" name="warehouse" value="Partitioning" class="form-check-input"> Data Partitioning
+          <input type="checkbox" name="warehouse" value="Security" class="form-check-input"> Data Security
+        </div>
+      </div>
+
+      <!-- Visualization Requirements -->
+      <div class="mb-3">
+        <label class="form-label">Visualization Requirements:</label>
+        <div>
+          <input type="checkbox" name="visualization" value="Dashboards" class="form-check-input"> Dashboards
+          <input type="checkbox" name="visualization" value="Reports" class="form-check-input"> Interactive Reports
+          <input type="checkbox" name="visualization" value="Geospatial" class="form-check-input"> Geospatial Visualization
+          <input type="checkbox" name="visualization" value="RealTimeDashboards" class="form-check-input"> Real-time Dashboards
+        </div>
+      </div>
+
+      <!-- Budget Preferences -->
+      <div class="mb-3">
+        <label class="form-label">Budget Preferences:</label>
+        <div>
+          <input type="radio" name="budget" value="Free" class="form-check-input"> Free
+          <input type="radio" name="budget" value="Paid" class="form-check-input"> Paid
+          <input type="radio" name="budget" value="Hybrid" class="form-check-input"> Hybrid
+        </div>
+      </div>
+
+      <!-- Additional Features -->
+      <div class="mb-3">
+        <label class="form-label">Additional Features:</label>
+        <div>
+          <input type="checkbox" name="features" value="Governance" class="form-check-input"> Data Governance
+          <input type="checkbox" name="features" value="QualityChecks" class="form-check-input"> Data Quality Checks
+          <input type="checkbox" name="features" value="Metadata" class="form-check-input"> Metadata Management
+          <input type="checkbox" name="features" value="Lineage" class="form-check-input"> Data Lineage Tracking
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Generate Pipeline</button>
+    </form>
+
+    <!-- Animated Loader -->
+    <div class="loader" id="loader">
+      <img src="https://cdn.pixabay.com/animation/2023/10/08/03/19/03-19-26-213_512.gif" alt="Loading...">
+    </div>
+
+    <div id="results" class="d-none">
+      <h2>Step-by-Step Instructions</h2>
+      <div id="steps"></div>
+      <h2>Recommended Tools</h2>
+      <div id="tools" class="tool-logos"></div>
+      <h2>Data Pipeline Diagram</h2>
+      <div id="diagram" class="diagram"></div>
+      <div id="costEstimation" class="cost-estimation"></div>
+      <button id="exportPdf" class="btn btn-success mt-3">Export as PDF</button>
+    </div>
+  </div>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+    mermaid.initialize({ startOnLoad: false });
+
+    // Mapping of tools to their logos and estimated costs
+    const toolDetails = {
+      "AWS S3": { logo: "https://logo.clearbit.com/amazonaws.com", cost: 0.023 },
+      "Apache Kafka": { logo: "https://logo.clearbit.com/kafka.apache.org", cost: 0.1 },
+      "Apache Spark": { logo: "https://logo.clearbit.com/spark.apache.org", cost: 0.15 },
+      "Apache Druid": { logo: "https://logo.clearbit.com/druid.apache.org", cost: 0.2 },
+      "Grafana": { logo: "https://logo.clearbit.com/grafana.com", cost: 0.3 },
+      "Snowflake": { logo: "https://logo.clearbit.com/snowflake.com", cost: 2.0 },
+      "Tableau": { logo: "https://logo.clearbit.com/tableau.com", cost: 0.5 },
+      "Databricks": { logo: "https://logo.clearbit.com/databricks.com", cost: 0.65 },
+      "MongoDB": { logo: "https://logo.clearbit.com/mongodb.com", cost: 0.25 }
+    };
+
+    document.getElementById('userInputForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      // Show the loader
+      document.getElementById('loader').style.display = 'block';
+
+      // Collect user inputs
+      const dataSources = Array.from(document.getElementById('dataSources').selectedOptions).map(option => option.value);
+      const dataSize = document.querySelector('input[name="dataSize"]:checked').value;
+      const processing = Array.from(document.querySelectorAll('input[name="processing"]:checked')).map(input => input.value);
+      const warehouse = Array.from(document.querySelectorAll('input[name="warehouse"]:checked')).map(input => input.value);
+      const visualization = Array.from(document.querySelectorAll('input[name="visualization"]:checked')).map(input => input.value);
+      const budget = document.querySelector('input[name="budget"]:checked').value;
+      const features = Array.from(document.querySelectorAll('input[name="features"]:checked')).map(input => input.value);
+
+      // Prepare the prompt for OpenRouter API
+      const prompt = `Generate step-by-step instructions and tool recommendations for building a data pipeline with the following requirements:
+        - Data Sources: ${dataSources.join(', ')}
+        - Data Size: ${dataSize}
+        - Data Processing: ${processing.join(', ')}
+        - Data Warehouse: ${warehouse.join(', ')}
+        - Visualization: ${visualization.join(', ')}
+        - Budget: ${budget}
+        - Additional Features: ${features.join(', ')}
+      `;
+
+      // Call OpenRouter API
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer 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', // Replace with your OpenRouter API key
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'Revoseek.com', // Optional. Site URL for rankings on openrouter.ai.
+            'X-Title': 'Revoseek', // Optional. Site title for rankings on openrouter.ai.
+          },
+          body: JSON.stringify({
+            model: 'deepseek/deepseek-r1-zero:free', // Use the DeepSeek model
+            messages: [
+              {
+                role: 'user',
+                content: prompt
+              }
+            ]
+          })
+        });
+
+        const data = await response.json();
+
+        // Hide the loader
+        document.getElementById('loader').style.display = 'none';
+
+        // Display the results
+        if (data.choices && data.choices.length > 0) {
+          const reply = data.choices[0].message.content;
+          displayResults(reply);
+        } else {
+          console.error('No response from the API');
+        }
+      } catch (error) {
+        // Hide the loader
+        document.getElementById('loader').style.display = 'none';
+        console.error('Error calling OpenRouter API:', error);
+      }
+    });
+
+    function displayResults(reply) {
+      const stepsDiv = document.getElementById('steps');
+      const toolsDiv = document.getElementById('tools');
+      const diagramDiv = document.getElementById('diagram');
+      const costEstimationDiv = document.getElementById('costEstimation');
+
+      // Filter lines containing "Step" and clean up the response
+      const steps = reply
+        .split('\n')
+        .filter(line => line.toLowerCase().includes('step'))
+        .map(step => step.replace(/[^\w\s.,-]/g, '')); // Remove special characters
+
+      // Display steps with logos
+      stepsDiv.innerHTML = steps.map((step, index) => {
+        const tool = Object.keys(toolDetails).find(tool => step.includes(tool));
+        const logo = tool ? `<img src="${toolDetails[tool].logo}" alt="${tool}" class="step-logo">` : '';
+        return `<div class="step">${logo} <strong>Step ${index + 1}:</strong> ${step}</div>`;
+      }).join('');
+
+      // Display tool logos at the bottom
+      const tools = Object.keys(toolDetails);
+      toolsDiv.innerHTML = tools.map(tool => `
+        <img src="${toolDetails[tool].logo}" alt="${tool}" class="tool-logo" title="${tool}">
+      `).join('');
+
+      // Calculate and display estimated cost per hour
+      const totalCost = tools.reduce((sum, tool) => sum + toolDetails[tool].cost, 0);
+      costEstimationDiv.innerHTML = `Estimated Cost per Hour: $${totalCost.toFixed(2)}`;
+
+      // Generate Mermaid diagram
+      const diagramDefinition = `
+        graph TD
+        ${steps.map((step, index) => `Step${index + 1}["${step}"]`).join(' --> ')}
+      `;
+
+      diagramDiv.innerHTML = `<div class="mermaid">${diagramDefinition}</div>`;
+      mermaid.init(undefined, diagramDiv);
+
+      // Show results section
+      document.getElementById('results').classList.remove('d-none');
+    }
+
+    document.getElementById('exportPdf').addEventListener('click', function() {
+      const doc = new jsPDF();
+      doc.text("Data Pipeline Steps", 10, 10);
+      const steps = document.getElementById('steps').innerText;
+      doc.text(steps, 10, 20);
+      doc.save("data-pipeline-steps.pdf");
+    });
+  </script>
+</body>
+</html>
